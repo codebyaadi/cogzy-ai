@@ -1,0 +1,25 @@
+import { Button } from "@cogzy/ui/components/button";
+import Link from "next/link";
+
+export default function Navbar() {
+  return (
+    <header className="fixed top-0 right-0 left-0 z-40 border-b border-[#727DA1]/10 flex justify-center before:absolute before:inset-0 before:-z-10 before:backdrop-blur-2xl">
+      <nav className="flex h-16 mx-8 grow justify-between text-[13px] leading-[100%]">
+        <div className="flex items-center">
+          <Link href="/">
+            <h1 className="text-base uppercase">cogzy.</h1>
+          </Link>
+        </div>
+
+        <div className="flex items-center justify-center gap-2">
+          <Button variant="outline" className="font-medium">
+            <Link href="/signin">Log In</Link>
+          </Button>
+          <Button variant="default" className="font-medium">
+            <Link href="/signup">Sign Up</Link>
+          </Button>
+        </div>
+      </nav>
+    </header>
+  );
+}

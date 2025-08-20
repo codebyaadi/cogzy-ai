@@ -21,7 +21,7 @@ export default function SignUpPage() {
             Create an Account
           </CardTitle>
           <CardDescription className="text-slate-400">
-            Enter your details to get started with Lucidocs AI.
+            Enter your details to get started with Cogzy AI.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">

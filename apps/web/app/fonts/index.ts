@@ -1,6 +1,6 @@
-import { Recursive } from "next/font/google";
+import { Outfit } from "next/font/google";
 
-export const fontRecursive = Recursive({
+export const fontOutfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-recursive",
+  variable: "--font-outfit",
 });

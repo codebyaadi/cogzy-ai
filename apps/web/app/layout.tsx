@@ -1,6 +1,6 @@
 import "@cogzy/ui/globals.css";
 import { Providers } from "@/components/providers";
-import { fontRecursive } from "./fonts";
+import { fontOutfit } from "./fonts";
 
 export default function RootLayout({
   children,
@@ -9,7 +9,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${fontRecursive.variable} font-recursive antialiased `}>
+      <body className={`${fontOutfit.variable} font-outfit antialiased `}>
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -1,4 +1,3 @@
 {
   "extends": "@cogzy/typescript-config/base.json"
 }
-

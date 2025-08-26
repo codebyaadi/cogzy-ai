@@ -17,9 +17,14 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
-    "drizzle-orm": "^0.44.4"
+    "drizzle-orm": "^0.44.4",
+    "uuid": "^11.1.0"
   },
   "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
     "./drizzle": {
       "types": "./src/drizzle.ts",
       "default": "./dist/drizzle.js"

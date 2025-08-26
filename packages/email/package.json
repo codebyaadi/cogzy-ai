@@ -1,0 +1,43 @@
+{
+  "name": "@cogzy/email",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsup",
+    "dev": "email dev --dir ./src/templates --port 3001"
+  },
+  "devDependencies": {
+    "@react-email/preview-server": "4.2.8",
+    "@types/bun": "latest",
+    "@types/nodemailer": "^7.0.1",
+    "@cogzy/eslint-config": "workspace:^",
+    "@cogzy/typescript-config": "workspace:*",
+    "react-email": "4.2.8",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@react-email/components": "0.5.1",
+    "nodemailer": "^7.0.5",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./templates/*": {
+      "types": "./dist/templates/*.d.ts",
+      "default": "./dist/templates/*.js"
+    },
+    "./lib/*": {
+      "types": "./dist/lib/*.d.ts",
+      "default": "./dist/lib/*.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "@cogzy/typescript-config/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@cogzy/email/*": ["./src/*"]
+    },
+    "jsx": "react-jsx"
+  },
+  "include": ["."],
+  "exclude": ["node_modules", "dist"]
+}

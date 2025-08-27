@@ -1,0 +1,30 @@
+{
+  "name": "@cogzy/auth",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsup",
+    "auth:generate": "bunx @better-auth/cli generate --config src/server.ts --output ../db/src/schema/auth.ts",
+    "auth:migrate": "bunx @better-auth/cli@latest migrate --config src/server.ts",
+    "lint": "eslint . --max-warnings 0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "tsup": "^8.5.0"
+  },
+  "dependencies": {
+    "better-auth": "^1.3.7",
+    "@cogzy/db": "workspace:*",
+    "@cogzy/email": "workspace:*"
+  },
+  "exports": {
+    "./server": {
+      "types": "./src/server.ts",
+      "default": "./dist/server.js"
+    },
+    "./client": {
+      "types": "./src/client.ts",
+      "default": "./dist/client.js"
+    }
+  }
+}

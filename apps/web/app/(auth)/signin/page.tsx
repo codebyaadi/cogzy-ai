@@ -1,3 +1,10 @@
+"use client";
+
+import { useActionState } from "react";
+import { LoaderCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useFormStatus } from "react-dom";
+import Link from "next/link";
 import { signIn } from "@/server/auth";
 import { Button } from "@cogzy/ui/components/button";
 import {
@@ -8,23 +15,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@cogzy/ui/components/card";
-import { Input } from "@cogzy/ui/components/input"; // Assuming you have an Input component
-import { Label } from "@cogzy/ui/components/label"; // Assuming you have a Label component
-import Link from "next/link";
+import { Input } from "@cogzy/ui/components/input";
+import { Label } from "@cogzy/ui/components/label";
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" disabled={pending} className="w-full ...">
+      {pending ? <LoaderCircle className="animate-spin" /> : "Log In"}
+    </Button>
+  );
+}
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const invitationId = searchParams.get("invitationId");
+  const [state, formAction] = useActionState(signIn, null);
+
   return (
     <div className="flex items-center justify-center p-4">
       <Card className="w-full max-w-md text-slate-50">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold tracking-tighter">
-            Welcome Back
-          </CardTitle>
+          <CardTitle className="text-2xl ...">Welcome Back</CardTitle>
           <CardDescription className="text-slate-400">
-            Log in to access your documents.
+            {invitationId
+              ? "Log in to accept your invitation."
+              : "Log in to access your documents."}
           </CardDescription>
         </CardHeader>
-        <form action={signIn}>
+        <form action={formAction}>
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -34,29 +53,31 @@ export default function LoginPage() {
                 type="email"
                 placeholder="name@example.com"
                 required
-                className=""
               />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className=""
-              />
+              <Input id="password" name="password" type="password" required />
             </div>
+            {/* Add the hidden input if invitationId exists */}
+            {invitationId && (
+              <input type="hidden" name="invitationId" value={invitationId} />
+            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
-            <Button className="w-full bg-white text-black hover:bg-slate-200">
-              Log In
-            </Button>
-            <div className="text-center text-sm text-slate-400">
+            <SubmitButton />
+            {state?.error && (
+              <p className="text-sm text-red-500">{state.error}</p>
+            )}
+            <div className="text-center text-sm ...">
               Don&apos;t have an account?{" "}
               <Link
-                href="/signup"
-                className="font-semibold text-white hover:underline"
+                href={
+                  invitationId
+                    ? `/signup?invitationId=${invitationId}`
+                    : "/signup"
+                }
+                className="font-semibold ..."
               >
                 Sign Up
               </Link>

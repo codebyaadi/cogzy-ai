@@ -15,8 +15,10 @@
   "dependencies": {
     "@cogzy/db": "workspace:*",
     "@cogzy/ui": "workspace:*",
+    "@cogzy/utils": "workspace:*",
+    "@cogzy/auth": "workspace:*",
+    "@cogzy/validator": "workspace:*",
     "@radix-ui/react-icons": "^1.3.2",
-    "better-auth": "^1.3.6",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.475.0",
     "next": "^15.4.5",

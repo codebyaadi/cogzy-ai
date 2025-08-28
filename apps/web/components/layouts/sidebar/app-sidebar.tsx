@@ -20,7 +20,7 @@ import {
   SidebarRail,
 } from "@cogzy/ui/components/sidebar";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client";
+import { authClient } from "@cogzy/auth/client";
 import CogzyLogo from "@/components/logo";
 
 const data = {

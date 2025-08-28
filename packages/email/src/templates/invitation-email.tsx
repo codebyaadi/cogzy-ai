@@ -2,7 +2,7 @@ import * as React from "react";
 import { CogzyLogo } from "../ui/cogzy-logo";
 
 interface InvitationEmailProps {
-  invitedBy?: string;
+  invitedByName?: string;
   organizationName?: string;
   inviteLink?: string;
   userName?: string;
@@ -67,7 +67,7 @@ const footerText = {
 };
 
 export const InvitationEmail = ({
-  invitedBy = "A colleague",
+  invitedByName = "A colleague",
   organizationName = "their organization",
   inviteLink = "https://yourapp.com/invite?token=invalid",
   userName = "there",
@@ -109,7 +109,7 @@ export const InvitationEmail = ({
       </h1>
       <p style={text}>Hello {userName},</p>
       <p style={text}>
-        <strong>{invitedBy}</strong> has invited you to join the{" "}
+        <strong>{invitedByName}</strong> has invited you to join the{" "}
         <strong>{organizationName}</strong> organization on Cogzy AI.
       </p>
       <div
@@ -121,7 +121,7 @@ export const InvitationEmail = ({
       </div>
       <p style={text}>
         This invitation link will expire in 24 hours. If you have any questions,
-        please reach out to {invitedBy}.
+        please reach out to {invitedByName}.
       </p>
       <p style={text}>
         Thanks,

@@ -7,6 +7,7 @@ import { eq } from "@cogzy/db";
 import { db } from "@cogzy/db/drizzle";
 import * as schema from "@cogzy/db/schema/auth";
 import { members, organizations } from "@cogzy/db/schema/auth";
+import { sendEmail } from "@cogzy/email";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -26,6 +27,20 @@ export const auth = betterAuth({
       teams: {
         enabled: true,
         maximumTeams: 10,
+      },
+      async sendInvitationEmail({
+        id: inviteId,
+        email,
+        inviter,
+        organization,
+      }) {
+        const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invitation/${inviteId}`;
+        await sendEmail(email, "Subject", "InvitationEmail", {
+          invitedByName: inviter.user.name,
+          organizationName: organization.name,
+          inviteLink: inviteLink,
+          userName: email,
+        });
       },
     }),
   ],

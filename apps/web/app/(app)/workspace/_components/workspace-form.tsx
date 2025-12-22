@@ -16,24 +16,10 @@ import { Label } from "@cogzy/ui/components/label";
 import { Textarea } from "@cogzy/ui/components/textarea";
 import { cn } from "@cogzy/ui/lib/utils";
 import { Plus } from "lucide-react";
-import { useEffect, useState, useRef } from "react";
-import { useFormState, useFormStatus } from "react-dom";
-import * as z from "zod";
-
-// --- Server Action & Types (Self-Contained) ---
-// By placing the action logic inside the component file, we resolve the import error.
-
-export type CreateWorkspaceState = {
-  message: string;
-  errors?: {
-    name?: string[];
-    description?: string[];
-    color?: string[];
-  };
-  success: boolean;
-};
-
-// --- Component Logic ---
+import { useEffect, useState, useRef, useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { toast } from "sonner";
+import { ActionState } from "@/lib/action";
 
 const workspaceColors = [
   "bg-blue-500",
@@ -60,20 +46,48 @@ export function CreateWorkspaceDialog({ label }: { label: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedColor, setSelectedColor] = useState(workspaceColors[0]);
 
-  const initialState: CreateWorkspaceState = {
+  // The initial state should match the return type of the server action's failure state.
+  const initialState = {
     message: "",
-    errors: {},
     success: false,
+    errors: undefined,
   };
-  const [state, dispatch] = useFormState(createWorkspace, initialState);
+
+  const [state, dispatch] = useActionState<ActionState<void>, FormData>(
+    createWorkspace,
+    initialState,
+  );
 
   useEffect(() => {
     if (state.success) {
       formRef.current?.reset();
       setSelectedColor(workspaceColors[0]);
       setIsOpen(false);
+      toast.success(state.message, {
+        description: "Your workspace has been created successfully.",
+      });
+    } else if (!state.success && state.message) {
+      // Handle validation errors with toast
+      if (state.errors && !Array.isArray(state.errors)) {
+        // Show individual field errors
+        Object.entries(state.errors).forEach(([field, fieldErrors]) => {
+          if (fieldErrors && fieldErrors.length > 0) {
+            toast.error(
+              `${field.charAt(0).toUpperCase() + field.slice(1)} Error`,
+              {
+                description: fieldErrors[0],
+              },
+            );
+          }
+        });
+      } else {
+        // Show general error message
+        toast.error("Error", {
+          description: state.message,
+        });
+      }
     }
-  }, [state.success]);
+  }, [state]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -100,11 +114,6 @@ export function CreateWorkspaceDialog({ label }: { label: string }) {
               placeholder="e.g., Q4 Marketing Campaign"
               required
             />
-            {state.errors?.name && (
-              <p className="text-sm font-medium text-destructive">
-                {state.errors.name[0]}
-              </p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -115,11 +124,6 @@ export function CreateWorkspaceDialog({ label }: { label: string }) {
               placeholder="A brief description of this workspace."
               className="resize-none"
             />
-            {state.errors?.description && (
-              <p className="text-sm font-medium text-destructive">
-                {state.errors.description[0]}
-              </p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -141,18 +145,7 @@ export function CreateWorkspaceDialog({ label }: { label: string }) {
                 />
               ))}
             </div>
-            {state.errors?.color && (
-              <p className="text-sm font-medium text-destructive">
-                {state.errors.color[0]}
-              </p>
-            )}
           </div>
-
-          {state.message && !state.success && (
-            <div className="text-sm font-medium text-destructive">
-              {state.message}
-            </div>
-          )}
 
           <DialogFooter>
             <Button

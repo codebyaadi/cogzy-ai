@@ -1,6 +1,7 @@
 "use server";
 
-import { auth } from "@cogzy/auth/server";
+import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { sql } from "@cogzy/db";
 import { db } from "@cogzy/db/drizzle";
 import {
@@ -9,37 +10,8 @@ import {
   workspaceMembers,
   workspaces,
 } from "@cogzy/db/schema/documents";
-import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
-import * as z from "zod";
-
-export type CreateWorkspaceState = {
-  message: string;
-  errors?: {
-    name?: string[];
-    description?: string[];
-    color?: string[];
-  };
-  success: boolean;
-};
-
-const workspaceFormSchema = z.object({
-  name: z
-    .string()
-    .min(3, {
-      message: "Workspace name must be at least 3 characters.",
-    })
-    .max(50, {
-      message: "Workspace name must not exceed 50 characters.",
-    }),
-  description: z
-    .string()
-    .max(200, {
-      message: "Description must not exceed 200 characters.",
-    })
-    .optional(),
-  color: z.string().nonempty({ message: "Please select a color." }),
-});
+import { CreateWorkspaceSchema } from "@cogzy/validator/schema/workspace";
+import { ActionState, getSession } from "@/lib/action";
 
 /**
  * Server Action to create a new workspace.
@@ -48,20 +20,16 @@ const workspaceFormSchema = z.object({
  * @returns The new state of the form, including success/error messages.
  */
 export async function createWorkspace(
-  prevState: CreateWorkspaceState,
+  _prevState: ActionState<void>,
   formData: FormData,
-): Promise<CreateWorkspaceState> {
-  const validatedFields = workspaceFormSchema.safeParse({
+): Promise<ActionState<void>> {
+  const validatedFields = CreateWorkspaceSchema.safeParse({
     name: formData.get("name"),
     description: formData.get("description"),
     color: formData.get("color"),
   });
 
   if (!validatedFields.success) {
-    console.error(
-      "Validation failed:",
-      validatedFields.error.flatten().fieldErrors,
-    );
     return {
       message: "Validation failed. Please check the fields.",
       errors: validatedFields.error.flatten().fieldErrors,
@@ -69,24 +37,21 @@ export async function createWorkspace(
     };
   }
 
+  const session = await getSession();
+
+  if (!session?.userId || !session?.activeOrganizationId) {
+    return {
+      success: false,
+      message: "You must be signed in to create a workspace.",
+    };
+  }
+
+  const { name, description, color } = validatedFields.data;
+  const { userId, activeOrganizationId } = session;
+
   try {
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
-    if (!session?.session?.userId || !session?.session?.activeOrganizationId) {
-      return {
-        message:
-          "You must be signed in and have an active organization to create a workspace.",
-        success: false,
-      };
-    }
-
-    const { name, description, color } = validatedFields.data;
-    const { userId, activeOrganizationId } = session.session;
-
     await db.transaction(async (tx) => {
-      const newWorkspace = await tx
+      const workspace = await tx
         .insert(workspaces)
         .values({
           name,
@@ -97,7 +62,7 @@ export async function createWorkspace(
         })
         .returning({ id: workspaces.id });
 
-      const workspaceId = newWorkspace[0]?.id;
+      const workspaceId = workspace[0]?.id;
 
       if (!workspaceId) {
         throw new Error("Failed to retrieve new workspace ID.");
@@ -105,20 +70,16 @@ export async function createWorkspace(
 
       await tx.insert(workspaceMembers).values({
         workspaceId,
-        userId: session.session.userId,
+        userId,
         role: "admin",
       });
-    });
 
-    console.log("Saving workspace to database:", validatedFields.data);
-    console.log("Workspace saved successfully.");
+      return workspace[0];
+    });
 
     revalidatePath("/workspaces");
 
-    return {
-      message: "Workspace created successfully!",
-      success: true,
-    };
+    return { success: true, message: `Workspace '${name}' created.` };
   } catch (error) {
     console.error("Error creating workspace:", error);
     return {
@@ -134,14 +95,11 @@ export async function createWorkspace(
  * @returns An array of Workspace objects.
  */
 export async function getWorkspaces() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getSession();
 
-  const organizationId = session?.session?.activeOrganizationId;
+  const organizationId = session?.activeOrganizationId;
 
   if (!organizationId) {
-    console.error("No active organization found for session.");
     return [];
   }
 

@@ -1,28 +1,53 @@
-// server/workspace-members.ts
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { eq, ilike, not, and, or, sql, desc } from "@cogzy/db";
 import { db } from "@cogzy/db/drizzle";
 import { workspaceMembers } from "@cogzy/db/schema/documents";
-import { members, users } from "@cogzy/db/schema/auth"; // Correct import for the 'members' table
-import { eq, like, not, and, or, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
-import { auth } from "@cogzy/auth/server";
-import { headers } from "next/headers";
+import { members, users } from "@cogzy/db/schema/auth";
+import { UserResult } from "@/types/user";
+import { WorkspaceRole } from "@/types/workspace";
+import { ActionState, getSession } from "@/lib/action";
 
-export type UserResult = {
-  id: string;
-  name: string;
-};
+/**
+ * Checks if the current authenticated user is an admin of a given workspace.
+ * @param workspaceId The ID of the workspace to check permissions for.
+ * @returns A boolean indicating if the user is an admin.
+ */
+async function checkAdminPermissions(workspaceId: string): Promise<boolean> {
+  const session = await getSession();
+  if (!session?.userId) {
+    return false;
+  }
 
+  const userMembership = await db
+    .select({ role: workspaceMembers.role })
+    .from(workspaceMembers)
+    .where(
+      and(
+        eq(workspaceMembers.workspaceId, workspaceId),
+        eq(workspaceMembers.userId, session.userId),
+      ),
+    )
+    .limit(1);
+
+  return userMembership[0]?.role === "admin";
+}
+
+/**
+ * Fetches a list of users for a given workspace, filtering by a search query.
+ * It excludes users who are already members of the specified workspace.
+ * @param query The search string to filter users by name or email.
+ * @param workspaceId The ID of the workspace to get users for.
+ * @returns An array of UserResult objects.
+ */
 export async function getUsersForWorkspace(
   query: string,
   workspaceId: string,
 ): Promise<UserResult[]> {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  const session = await getSession();
+  const organizationId = session?.activeOrganizationId;
 
-  const organizationId = session?.session?.activeOrganizationId;
   if (!organizationId) {
     return [];
   }
@@ -39,16 +64,17 @@ export async function getUsersForWorkspace(
       .select({
         id: users.id,
         name: users.name,
+        email: users.email,
+        image: users.image,
       })
       .from(users)
-      // Corrected join to use the `members` table from auth.ts
       .innerJoin(members, eq(users.id, members.userId))
       .where(
         and(
           eq(members.organizationId, organizationId),
           or(
-            like(sql`LOWER(${users.name})`, normalizedQuery),
-            like(sql`LOWER(${users.email})`, normalizedQuery),
+            ilike(users.name, normalizedQuery),
+            ilike(users.email, normalizedQuery),
           ),
           not(sql`${users.id} IN (${usersInWorkspace})`),
         ),
@@ -62,29 +88,32 @@ export async function getUsersForWorkspace(
   }
 }
 
-type AddMemberState = {
-  message: string;
-  success: boolean;
-};
-
+/**
+ * Adds a new member to a workspace.
+ * This action first verifies that the authenticated user has admin permissions
+ * for the specified workspace before inserting the new member.
+ * @param _prevState The previous state of the form, provided by `useFormState`.
+ * @param formData The form data containing `workspaceId`, `userId`, and `role`.
+ * @returns An object with a success message and status.
+ */
 export async function addMemberToWorkspace(
-  prevState: AddMemberState,
+  _prevState: ActionState<void>,
   formData: FormData,
-): Promise<AddMemberState> {
+): Promise<ActionState<void>> {
   const workspaceId = formData.get("workspaceId") as string;
   const userId = formData.get("userId") as string;
-  const role = formData.get("role") as "admin" | "editor" | "viewer";
+  const role = formData.get("role") as WorkspaceRole;
 
   if (!workspaceId || !userId || !role) {
     return { message: "Missing required fields.", success: false };
   }
 
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session?.session?.userId) {
-    return { message: "Unauthorized.", success: false };
+  const isAdmin = await checkAdminPermissions(workspaceId);
+  if (!isAdmin) {
+    return {
+      message: "You don't have permission to manage members in this workspace.",
+      success: false,
+    };
   }
 
   try {

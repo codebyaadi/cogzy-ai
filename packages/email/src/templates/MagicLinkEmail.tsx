@@ -104,7 +104,8 @@ export const MagicLinkEmail = ({
       </h1>
       <p style={text}>Hello {userName},</p>
       <p style={text}>
-        Click the button below to log in to your Cogzy AI account securely with your magic link.
+        Click the button below to log in to your Cogzy AI account securely with
+        your magic link.
       </p>
       <div
         style={{ textAlign: "center", marginTop: "32px", marginBottom: "32px" }}
@@ -114,7 +115,8 @@ export const MagicLinkEmail = ({
         </a>
       </div>
       <p style={text}>
-        This link will expire in 15 minutes. If you didn’t request this, please ignore this email.
+        This link will expire in 15 minutes. If you didn’t request this, please
+        ignore this email.
       </p>
       <p style={text}>
         Thanks,

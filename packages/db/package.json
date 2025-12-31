@@ -1,7 +1,7 @@
 {
   "name": "@cogzy/db",
-  "module": "src/index.ts",
-  "type": "module",
+  "version": "0.0.0",
+  "private": true,
   "scripts": {
     "build": "tsup",
     "db:generate": "bunx drizzle-kit generate",
@@ -21,6 +21,8 @@
     "postgres": "^3.4.7",
     "uuid": "^11.1.0"
   },
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",

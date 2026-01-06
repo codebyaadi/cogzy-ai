@@ -50,13 +50,8 @@ export function SignUpForm({ invitationId }: SignUpFormProps) {
         <form action={formAction}>
           <CardContent className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="full-name">Full Name</Label>
-              <Input
-                id="full-name"
-                name="full-name"
-                placeholder="John Doe"
-                required
-              />
+              <Label htmlFor="name">Full Name</Label>
+              <Input id="name" name="name" placeholder="John Doe" required />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>

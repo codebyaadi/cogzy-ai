@@ -2,8 +2,8 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { sql } from "@cogzy/db";
-import { db } from "@cogzy/db/drizzle";
+import { sql } from "@cogzy/db/drizzle";
+import { db } from "@cogzy/db";
 import {
   conversations,
   documents,

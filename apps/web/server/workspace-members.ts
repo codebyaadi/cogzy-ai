@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { eq, ilike, not, and, or, sql, desc } from "@cogzy/db";
-import { db } from "@cogzy/db/drizzle";
+import { eq, ilike, not, and, or, sql, desc } from "@cogzy/db/drizzle";
+import { db } from "@cogzy/db";
 import { workspaceMembers } from "@cogzy/db/schema/documents";
 import { members, users } from "@cogzy/db/schema/auth";
 import { UserResult } from "@/types/user";
